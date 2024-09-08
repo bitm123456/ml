@@ -1,0 +1,61 @@
+import pandas as pd
+import random
+import math
+import operator
+import numpy as np
+
+def loadDataset(filename, split, trainingSet=[], testSet=[]):
+    dataset = pd.read_csv(filename)
+    for index, row in dataset.iterrows():
+        row_data = row[:4].tolist()  # Convert features to list
+        row_data.append(row[-1])  # Add class label to the list
+        if random.random() < split:
+            trainingSet.append(row_data)
+        else:
+            testSet.append(row_data)
+
+def euclideanDistance(instance1, instance2, length):
+    return np.sqrt(np.sum((np.array(instance1[:length]) - np.array(instance2[:length])) ** 2))
+
+def getNeighbors(trainingSet, testInstance, k):
+    distances = [(trainInstance, euclideanDistance(testInstance, trainInstance, len(testInstance) - 1)) for trainInstance in trainingSet]
+    distances.sort(key=operator.itemgetter(1))
+    return [distances[i][0] for i in range(k)]
+
+def getResponse(neighbors):
+    classVotes = {}
+    for neighbor in neighbors:
+        response = neighbor[-1]
+        if response in classVotes:
+            classVotes[response] += 1
+        else:
+            classVotes[response] = 1
+    sortedVotes = sorted(classVotes.items(), key=operator.itemgetter(1), reverse=True)
+    return sortedVotes[0][0]
+
+def getAccuracy(testSet, predictions):
+    correct = sum(1 for i in range(len(testSet)) if testSet[i][-1] == predictions[i])
+    return (correct / float(len(testSet))) * 100.0
+
+def main():
+    trainingSet = []
+    testSet = []
+    split = 0.67
+    loadDataset('iris_data.csv', split, trainingSet, testSet)
+    print(f'\nNumber of Training data: {len(trainingSet)}')
+    print(f'Number of Test Data: {len(testSet)}')
+
+    predictions = []
+    k = 3
+    print('\nThe predictions are:')
+    
+    for testInstance in testSet:
+        neighbors = getNeighbors(trainingSet, testInstance, k)
+        result = getResponse(neighbors)
+        predictions.append(result)
+        print(f'predicted={result}, actual={testInstance[-1]}')
+
+    accuracy = getAccuracy(testSet, predictions)
+    print(f'\nThe Accuracy is: {accuracy:.2f}%')
+
+main()
