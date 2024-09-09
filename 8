@@ -7,8 +7,8 @@ import numpy as np
 def loadDataset(filename, split, trainingSet=[], testSet=[]):
     dataset = pd.read_csv(filename)
     for index, row in dataset.iterrows():
-        row_data = row[:4].tolist()  # Convert features to list
-        row_data.append(row[-1])  # Add class label to the list
+        row_data = row[:4].tolist()  
+        row_data.append(row[-1]) 
         if random.random() < split:
             trainingSet.append(row_data)
         else:
